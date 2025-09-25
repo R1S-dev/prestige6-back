@@ -1,0 +1,59 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Setting {
+  id                    Int     @id
+  jackpotCode           String  @default("JP-0001")
+  jpGrowPerSec          Float   @default(0.2)
+  jpStartMini           Int     @default(15000)
+  jpStartMain           Int     @default(250000)
+  plannedMoneyBag       Int?
+  plannedX2a            Int?
+  plannedX2b            Int?
+  plannedDrawNumbersStr String?
+  roundSerial           Int     @default(1)
+}
+
+model Round {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  startedAt    DateTime?
+  roundSerial  Int
+  seed         String
+  jackpotCode  String
+  jpGrowPerSec Float
+  jpStartMini  Int
+  jpStartMain  Int
+
+  draws    Draw[]
+  specials RoundSpecial?
+}
+
+model Draw {
+  id      String @id @default(cuid())
+  number  Int
+  order   Int
+
+  round   Round  @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  roundId String
+
+  @@unique([roundId, order])
+}
+
+model RoundSpecial {
+  id       String @id @default(cuid())
+  moneyBag Int?
+  x2a      Int?
+  x2b      Int?
+
+  round    Round  @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  roundId  String @unique
+}
